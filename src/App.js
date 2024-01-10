@@ -1,4 +1,7 @@
+import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
+import React from 'react';
+import TaskPage from './components/pages/TaskPage';
 
 function App() {
 
@@ -8,7 +11,7 @@ function App() {
         <h1>Keep employees busy</h1>
       </section>
       <section id="Task-list">
-        This is where the tasks will be
+        <TaskPage/> 
       </section>
     </div>
   );
