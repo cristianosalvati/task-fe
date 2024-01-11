@@ -6,6 +6,7 @@ import Modal from '../../modules/Modal';
 import ResultsPage from '../../modules/ResultsPage';
 import Button from '../../components/atoms/clickable/Button';
 import Label from '../../components/atoms/caption/Label';
+import InputText from '../../components/atoms/input/InputText';
 import trashIcon from '../../images/trash.gif';
 import addIcon from '../../images/add.png';
 import loadIcon from '../../images/loading.gif';
@@ -48,7 +49,8 @@ class TaskPage extends Component {
         try {
             // TODO: implement a searchFilter parameter
             const searchFilter = { };
-            const taskData = await findTasks(searchFilter); 
+            let taskData = await findTasks(searchFilter); 
+            taskData = taskData[0];
             this.setState({ taskData }); 
         }catch (error) {
             this.setState({
@@ -66,7 +68,7 @@ class TaskPage extends Component {
 
     callCreateTask = async () => {
         try {
-
+         // TODO: let's use client to call API
         } catch (error) { 
             this.setState({
                 modalDetail: null,
@@ -82,7 +84,7 @@ class TaskPage extends Component {
 
     callDeleteTask = async () => {
         try {
-
+         // TODO: let's use client to call API
         } catch (error) { 
             this.setState({
                 modalDetail: null,
@@ -98,7 +100,7 @@ class TaskPage extends Component {
 
     callGetAllEmployees = async () => {
         try {
-            
+        // TODO: let's use client to call get API
         } catch (error) { 
             this.setState({
                 modalDetail: null,
@@ -112,9 +114,17 @@ class TaskPage extends Component {
         }
     };
 
-    calAssignEmployeeToTask = async () => {
+    calUnassignEmployeeToTask = async (taskId, employeeId) => {
         try {
-            
+        // TODO: let's use client to call unassign API and manage response message
+            await assignEmployeeToTask(employeeId, taskId, false).then(() => {
+                this.fetchTaskData();
+              });
+            ; 
+            this.setState({
+                modalDisplayed: false,
+            });  
+
         } catch (error) { 
             this.setState({
                 modalDetail: null,
@@ -130,7 +140,7 @@ class TaskPage extends Component {
 
     callAssignEmployeeToTask  = async () => {
         try {
-            
+            // TODO: let's use client to call assign API
         } catch (error) { 
             this.setState({
                 modalDetail: null,
@@ -145,6 +155,7 @@ class TaskPage extends Component {
     };
 
     handleAssignTaskClick = (row) => {
+        // TODO:  call for employee assign
         let content = (
             <div className="container">
                 
@@ -165,15 +176,34 @@ class TaskPage extends Component {
     handleUnassignTaskClick = (row) => {
         let content = (
             <div className="container">
-                
+                 <ul>
+                    {row.employeesList.map(employee => (
+                        <li key={employee.id}>
+                        {employee.firstName} {employee.lastName} - {employee.role} -
+
+                        <button 
+                            title={`Employees unassigned to task n. ${row.id}: ${row.title}`} 
+                            style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0, margin: 0 }}
+                            onClick={() => this.calUnassignEmployeeToTask(row.id, employee.id)}
+                            type="button" >
+                            <img src={trashIcon} 
+                                alt={`Employees unassigned to task n. ${row.id} per ${row.title}`} 
+                                data-tip="See related employees" 
+                                data-for={`tooltip-${row.id}`}
+                            />
+                            </button>
+
+                        </li>
+                    ))}
+                    </ul>
             </div>
         );
         this.setState({
             modalDisplayed: true,
-            modalOperationId: `Employees List`,
+            modalOperationId: `Unassign Employee`,
             modalMessage: `Employees list for task n. ${row.id}: ${row.title}?`,
-            modalConfirmEnable: true,
-            modalContent: null,
+            modalConfirmEnable: false,
+            modalContent: content,
             modalDetail: null,
             modalIsLoading: false,
             rettificaSelezionata: row.progId,
@@ -231,11 +261,12 @@ class TaskPage extends Component {
                 <button 
                   title={`Employees assigned to task n. ${row.original.id}: ${row.original.title}`} 
                   style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0, margin: 0 }}
-                  onClick={() => this.handleDeleteTaskClick(row.original)} >
+                  onClick={() => this.handleUnassignTaskClick(row.original)}
+                  type="button" >
                   <img src={detailIcon} 
                     alt={`Employees assigned to task n. ${row.original.id} per ${row.original.title}`} 
                     data-tip="See related employees" 
-                    data-for={`tooltip-${row.id}`}
+                    data-for={`tooltip-${row.original.id}`}
                   />
                 </button>
               ),
@@ -253,7 +284,32 @@ class TaskPage extends Component {
                                     </div>
                                 </div>
                                 <div className="row">
-                                    <div className="col-12">
+                                    <div className="col-2">
+                                        <InputText
+                                            id="searchFilter"
+                                            name="searchFilter"
+                                            disabled={true} 
+                                            value=""
+                                            placeholder="Implement it to filter results"
+                                        />
+                                    </div>
+                                    <div className="col-2">
+                                        
+                                    </div>
+                                    <div className="col-2">
+                                    <button 
+                                        title={`create new task`} 
+                                        style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0, margin: 0 }}
+                                        onClick={() => this.callCreateTask()}
+                                        type="button" >
+                                        <img src={addIcon} 
+                                            alt={`create new task`} 
+                                            data-tip="Create new task" 
+                                        />
+                                        </button>
+                                    </div>
+                                    <div className="col-6">
+                                        
                                     </div>
                                 </div>
                         </fieldset>
@@ -264,7 +320,6 @@ class TaskPage extends Component {
                                         title="Task list"
                                         columns={columns} 
                                         data = {this.state.taskData}
-                                        defaultPageSize = {30}
                                         />
                                 </fieldset>
                             </>
@@ -280,6 +335,7 @@ class TaskPage extends Component {
                         title={this.state.modalOperationId}
                         message={this.state.modalMessage}
                         modalDetail={this.state.modalDetail}
+                        modalContent={this.state.modalContent}
                         modalIsLoading={this.state.modalIsLoading}
                     />
                 )}

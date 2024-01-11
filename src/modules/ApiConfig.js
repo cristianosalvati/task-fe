@@ -12,9 +12,9 @@ export const API_URLS = {
   deleteTaskById: (taskId) => 
     `${API_BASE_URL}/api/tasks/delete/${taskId}`,
   assignEmployeeToTask: (employeeId, taskId) => 
-    `${API_BASE_URL}/api/tasks/assign/${employeeId}/to/${taskId}`,
+    `${API_BASE_URL}/api/tasks/assign/${taskId}/to/${employeeId}`,
   unassignEmployeeToTask: (employeeId, taskId) => 
-    `${API_BASE_URL}/api/tasks/unassign/${employeeId}/from/${taskId}`,
+    `${API_BASE_URL}/api/tasks/unassign/${taskId}/from/${employeeId}`,
   updateTaskDueDate: (taskId) => 
     `${API_BASE_URL}/api/tasks/api/tasks/due-date/${taskId}`,
 };

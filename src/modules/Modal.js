@@ -16,7 +16,7 @@ const Modal = ({ modalDisplayed, onClose, onConfirm,  title, message, modalConfi
             {message}
             {modalIsLoading && (
                <div className="loading-animation">
-                  Attendere il caricamento... &nbsp;
+                  Loading... &nbsp;
                   <img src={iconaLoading} 
                         alt="Attendere il caricamento"
                   />
@@ -25,7 +25,7 @@ const Modal = ({ modalDisplayed, onClose, onConfirm,  title, message, modalConfi
             {(modalDetail !== null && modalDetail !== undefined) && (
             <div className="modal-detail" style={{ overflow: 'auto', height: '200px' }}>
               <p>
-                <b>Dettaglio:</b>
+                <b>Details:</b>
                 <StringList strings={modalDetail} limit={modalDetailLimit}/>
               </p>
             </div>
@@ -42,9 +42,8 @@ const Modal = ({ modalDisplayed, onClose, onConfirm,  title, message, modalConfi
             )}
           </div>
           <div className="modal-footer">
-            {modalDetail && <Button onClick={() => downloadDetailAsFile(modalDetail, title, modalDownloadFilename)} value="Scarica Dettaglio" /> }
-            {modalConfirmEnable && <Button onClick={onConfirm} value="CONFERMA"/>}
-            <Button onClick={onClose} value="CHIUDI"/>
+            {modalConfirmEnable && <Button onClick={onConfirm} value="CONFIRM"/>}
+            <Button onClick={onClose} value="CLOSE"/>
           </div>
         </div>
       </div>
@@ -52,22 +51,5 @@ const Modal = ({ modalDisplayed, onClose, onConfirm,  title, message, modalConfi
   );
 };
 
-function downloadDetailAsFile(detailArray, title, modalDownloadFilename) {
-  const content = detailArray.join('\n'); // Converti l'array in una stringa con righe separate da "\n"
-  const blob = new Blob([content], { type: 'text/plain' }); // Crea un oggetto Blob con il contenuto
-
-  const url = window.URL.createObjectURL(blob); // Crea un URL per il blob
-  const a = document.createElement('a');
-  a.href = url;
-  if (modalDownloadFilename) 
-    a.download = modalDownloadFilename + "_" + getFormattedStringFromDate(new Date()) + '.csv';
-  else 
-    a.download = 'dettaglio_alert_' + title + "_" + getFormattedStringFromDate(new Date()) + '.csv'; 
-
-  document.body.appendChild(a);
-  a.click();
-  window.URL.revokeObjectURL(url); // Rilascia l'URL del blob
-  document.body.removeChild(a);
-}
 
 export default Modal;

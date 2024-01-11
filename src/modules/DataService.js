@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { API_URLS } from './ApiConfig';
+import {getFormattedStringFromDate, getDateFromFormattedString, getFirstDayOfMonth, getLastDayOfMonth} from './Utils';
 
 export async function getAllEmployees (){
   try {
@@ -31,18 +32,21 @@ export async function findTasks (searchFilter){
     //TODO: check filter parameter 
 
     return fetchApiData(url, method, requestBody, false).then((data) =>
-      data.map((item) => ({
-        id: item.employeeTaskList.id,
-        title: item.employeeTaskList.title,
-        description: item.employeeTaskList.description,
-        taskStatus: item.employeeTaskList.taskStatus,
-        dueDate: item.employeeTaskList.dueDate,
-        manager: item.employeeTaskList.manager?.lastName,
-        email: item.employeeTaskList.manager?.email,
-        dateInsert: item.employeeTaskList.dateInsert,
+    data.map((item) => {
+      const employeeTasks = item.employeeTaskList.map((task) => ({
+        id: task.id,
+        title: task.title,
+        description: task.description,
+        taskStatus: task.taskStatus,
+        dueDate: task.dueDateS,
+        manager: task.manager?.lastName,
+        email: task.manager?.email,
+        dateInsert: task.dateInsertS,
         employees: true,
-        employeesList: item.employeeTaskList.employees
-      }))
+        employeesList: task.employees
+      }));
+      return employeeTasks;
+    })
     );
 
   } catch (error) {
