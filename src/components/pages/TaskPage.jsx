@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import { getAllEmployees, findTasks, assignEmployeeToTask, updateTaskDueDate, createEmployee, createTask, deleteEmployeeById, deleteTaskById} from '../../modules/DataService';
 import Modal from '../../modules/Modal';
 import ResultsPage from '../../modules/ResultsPage';
-import trashIcon from '../../images/trash.gif';
 import addIcon from '../../images/add.png';
 import removeIcon from '../../images/remove.gif';
 
@@ -233,7 +232,7 @@ class TaskPage extends Component {
                             style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0, margin: 0 }}
                             onClick={() => this.calAssignEmployeeToTask(row.id, employee.id, false)}
                             type="button" >
-                            <img src={trashIcon} 
+                            <img src={removeIcon} 
                                 alt={`Employees unassigned to task n. ${row.id} per ${row.title}`} 
                                 data-tip="See related employees" 
                                 data-for={`tooltip-${row.id}`}
