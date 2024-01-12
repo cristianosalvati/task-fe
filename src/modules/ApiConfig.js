@@ -1,5 +1,7 @@
 const LOCAL_API_BASE_URL = process.env.REACT_APP_API_URI;
 
+// URL MAPPING CONFIGURATION HERE
+
 const API_BASE_URL = window.env?.API_BASE_DOMAIN_ADDR ? window.env.API_BASE_DOMAIN_ADDR : LOCAL_API_BASE_URL;
 
 export const API_URLS = {
@@ -16,5 +18,5 @@ export const API_URLS = {
   unassignEmployeeToTask: (employeeId, taskId) => 
     `${API_BASE_URL}/api/tasks/unassign/${taskId}/from/${employeeId}`,
   updateTaskDueDate: (taskId) => 
-    `${API_BASE_URL}/api/tasks/api/tasks/due-date/${taskId}`,
+    `${API_BASE_URL}/api/tasks/due-date/${taskId}`,
 };

@@ -1,16 +1,12 @@
 import React, { Component } from 'react';
-import { getDateFromFormattedString, getFirstDayOfMonth, getLastDayOfMonth} from '../../modules/Utils';
-import { getAllEmployees, findTasks, createEmployee, createTask, deleteEmployeeById, deleteTaskById, assignEmployeeToTask, updateTaskDueDate} from '../../modules/DataService';
-import { Link } from 'react-router-dom';
+import { getAllEmployees, findTasks, assignEmployeeToTask, updateTaskDueDate, createEmployee, createTask, deleteEmployeeById, deleteTaskById} from '../../modules/DataService';
 import Modal from '../../modules/Modal';
 import ResultsPage from '../../modules/ResultsPage';
-import Button from '../../components/atoms/clickable/Button';
-import Label from '../../components/atoms/caption/Label';
-import InputText from '../../components/atoms/input/InputText';
 import trashIcon from '../../images/trash.gif';
 import addIcon from '../../images/add.png';
-import loadIcon from '../../images/loading.gif';
-import detailIcon from '../../images/detail.gif';
+import removeIcon from '../../images/remove.gif';
+
+// PAGE TO MANAGE TASKS AND EMPLOYEES
 
 class TaskPage extends Component {
 
@@ -24,6 +20,9 @@ class TaskPage extends Component {
         modalIsLoading: false,
         taskData: [],
         selectedTask: null,
+        newUpdateDateS: null,
+        employeeData:[],
+        dueDateInputValues: {}, 
     };
 
     componentDidUpdate(prevProps, prevState) {
@@ -41,20 +40,35 @@ class TaskPage extends Component {
             modalIsLoading: false,
             taskData: [],
             selectedTask: null,
+            dueDateInputValues: {}, // array containing due date to update
         });
-        this.fetchTaskData();
+        this.fetchlEmployeesData();
+        this.fetchTaskData().then((taskData) => {
+            this.setState({
+                taskData: taskData.map((task) => ({
+                    ...task,
+                })),
+            });
+        });
     }
 
     fetchTaskData = async () => {
         try {
-            // TODO: implement a searchFilter parameter
+            // TODO: implement a searchFIlter parameter to filtering task grid
             const searchFilter = { };
             let taskData = await findTasks(searchFilter); 
             taskData = taskData[0];
-            this.setState({ taskData }); 
-        }catch (error) {
+            
+            //initializing due date for any grid's row
+            const dueDateInputValues = {};
+            taskData.forEach((task) => {
+                dueDateInputValues[task.id] = task.dueDate;
+            });
+
+            this.setState({ taskData, dueDateInputValues }); 
+        } catch (error) {
             this.setState({
-                taskData : [],
+                taskData: [],
                 modalDetail: null,
                 modalContent: null,
                 modalIsLoading: false,
@@ -62,13 +76,31 @@ class TaskPage extends Component {
                 modalMessage: error.message,   
                 modalConfirmEnable: false,
                 modalOperationId:   "Errore",
-          });  
+            });  
+        }
+    };
+
+    fetchlEmployeesData = async () => {
+        try {
+            const employeeData = await getAllEmployees(); 
+            this.setState({employeeData: employeeData});
+        } catch (error) { 
+            this.setState({
+                modalDetail: null,
+                modalContent: null,
+                modalIsLoading: false,
+                modalDisplayed: true,
+                modalMessage: error.message,   
+                modalConfirmEnable: false,
+                modalOperationId:   "Errore",
+                employeeData: [],
+            });  
         }
     };
 
     callCreateTask = async () => {
         try {
-         // TODO: let's use client to call API
+         // TODO: let's use client to call BE API
         } catch (error) { 
             this.setState({
                 modalDetail: null,
@@ -84,7 +116,7 @@ class TaskPage extends Component {
 
     callDeleteTask = async () => {
         try {
-         // TODO: let's use client to call API
+         // TODO: let's use client to call BE API
         } catch (error) { 
             this.setState({
                 modalDetail: null,
@@ -98,26 +130,10 @@ class TaskPage extends Component {
         }
     };
 
-    callGetAllEmployees = async () => {
+    calAssignEmployeeToTask = async (taskId, employeeId, isAssign) => {
         try {
-        // TODO: let's use client to call get API
-        } catch (error) { 
-            this.setState({
-                modalDetail: null,
-                modalContent: null,
-                modalIsLoading: false,
-                modalDisplayed: true,
-                modalMessage: error.message,   
-                modalConfirmEnable: false,
-                modalOperationId:   "Errore",
-            });  
-        }
-    };
-
-    calUnassignEmployeeToTask = async (taskId, employeeId) => {
-        try {
-        // TODO: let's use client to call unassign API and manage response message
-            await assignEmployeeToTask(employeeId, taskId, false).then(() => {
+        // TODO: manage response message 
+            await assignEmployeeToTask(employeeId, taskId, isAssign).then(() => {
                 this.fetchTaskData();
               });
             ; 
@@ -138,9 +154,12 @@ class TaskPage extends Component {
         }
     };
 
-    callAssignEmployeeToTask  = async () => {
+    callUpdateTaskDueDate = async (taskId, dueDate) => {
         try {
-            // TODO: let's use client to call assign API
+            await updateTaskDueDate(taskId, dueDate).then(() => {
+                this.fetchTaskData();
+            });
+            ; 
         } catch (error) { 
             this.setState({
                 modalDetail: null,
@@ -154,19 +173,46 @@ class TaskPage extends Component {
         }
     };
 
+    handleCreateTaskClick = (taskData) => {
+        // TODO implement it, check task data and callCreateTask api to send data to BE
+    };
+
+    handleDeleteTaskClick = (taskData) => {
+        // TODO implement it, check task data and callDeleteTask api to send data to BE
+    };
+
     handleAssignTaskClick = (row) => {
-        // TODO:  call for employee assign
+        this.fetchlEmployeesData();
         let content = (
             <div className="container">
-                
+                 <ul>
+                    {this.state.employeeData.map(employee => (
+                        <li key={employee.id}>
+                        {employee.firstName} {employee.lastName} - {employee.role} -
+
+                        <button 
+                            title={`Assigned to task n. ${row.id}: ${row.title}`} 
+                            style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0, margin: 0 }}
+                            onClick={() => this.calAssignEmployeeToTask(row.id, employee.id, true)}
+                            type="button" >
+                            <img src={addIcon} 
+                                alt={`Aassigned to task n. ${row.id} per ${row.title}`} 
+                                data-tip="See employees" 
+                                data-for={`tooltip-${row.id}`}
+                            />
+                            </button>
+
+                        </li>
+                    ))}
+                    </ul>
             </div>
         );
         this.setState({
             modalDisplayed: true,
-            modalOperationId: `Employees List`,
-            modalMessage: `Employees list for task n. ${row.id}: ${row.title}?`,
-            modalConfirmEnable: true,
-            modalContent: null,
+            modalOperationId: `Assign Employee`,
+            modalMessage: `Add employee to task n. ${row.id}: "${row.title}"`,
+            modalConfirmEnable: false,
+            modalContent: content,
             modalDetail: null,
             modalIsLoading: false,
             rettificaSelezionata: row.progId,
@@ -174,6 +220,7 @@ class TaskPage extends Component {
     };
 
     handleUnassignTaskClick = (row) => {
+        //TODO refactor in a singol method with handleAssignTaskClick
         let content = (
             <div className="container">
                  <ul>
@@ -184,7 +231,7 @@ class TaskPage extends Component {
                         <button 
                             title={`Employees unassigned to task n. ${row.id}: ${row.title}`} 
                             style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0, margin: 0 }}
-                            onClick={() => this.calUnassignEmployeeToTask(row.id, employee.id)}
+                            onClick={() => this.calAssignEmployeeToTask(row.id, employee.id, false)}
                             type="button" >
                             <img src={trashIcon} 
                                 alt={`Employees unassigned to task n. ${row.id} per ${row.title}`} 
@@ -201,7 +248,7 @@ class TaskPage extends Component {
         this.setState({
             modalDisplayed: true,
             modalOperationId: `Unassign Employee`,
-            modalMessage: `Employees list for task n. ${row.id}: ${row.title}?`,
+            modalMessage: `Employees list for task n. ${row.id}: "${row.title}"`,
             modalConfirmEnable: false,
             modalContent: content,
             modalDetail: null,
@@ -210,18 +257,23 @@ class TaskPage extends Component {
         });
     };
 
+    handleUpdateTaskDueDateChange = (e, taskId) => {
+        const { dueDateInputValues } = this.state;
+        const newDueDateInputValues = {
+            ...dueDateInputValues,
+            [taskId]: e.target.value,
+        };
+        this.setState({ dueDateInputValues: newDueDateInputValues });
+    };
+          
     confirmModal = () => {
         try {
             this.setState({ 
                 modalIsLoading: true ,
                 modalConfirmEnable: false,
             });
-            if (this.state.modalOperationId === "Employees List")
-                this.callGetAllEmployees();
-            if (this.state.modalOperationId === "Assign Employee")
-                this.calAssignEmployeeToTask(false);
-            if (this.state.modalOperationId === "Unassign Employee")
-                this.calAssignEmployeeToTask(true);
+            // TODO: manage here call to action on modal confirm 
+          
         } catch (error) { 
             this.setState({
                 modalDetail: null,
@@ -247,31 +299,72 @@ class TaskPage extends Component {
     };
 
     render() {
+        // header definition for result grid 
         const columns = [
             { Header: 'Id',  accessor: 'id', },
             { Header: 'Title',  accessor: 'title', },
             { Header: 'Description', accessor: 'description', },
             { Header: 'Task Status', accessor: 'taskStatus', },
-            { Header: 'Due Date', accessor: 'dueDate', },
+            { Header: 'Due Date', accessor: 'dueDate', 
+                Cell: ({ row }) => (
+                    <div style={{  display: 'flex', alignItems: 'center' }}>
+                        <input
+                            type="date"
+                            id={`duedate-${row.original.id}`}
+                            name="due-date"
+                            value={this.state.dueDateInputValues[row.original.id]}
+                            placeholder="yyyy-MM-dd"
+                            onChange={(e) => this.handleUpdateTaskDueDateChange(e, row.original.id)}
+                        />
+                        <button     
+                            title={`Update due date for task n. ${row.original.id}`} 
+                            style={{float: 'right', cursor: 'pointer', background: 'none', border: 'none', padding: 0, margin: 0 }}
+                            onClick={() => this.callUpdateTaskDueDate(row.original.id, this.state.dueDateInputValues[row.original.id])}
+                            type="button" >
+                            <img src={addIcon} 
+                                alt={`Update due date`} 
+                                data-tip="Update due date" 
+                            />
+                        </button>
+                    </div>
+                ),
+            },
             { Header: 'Manager ref.', accessor: 'manager', },
             { Header: 'Man. email', accessor: 'email', },
             { Header: 'Date Insert', accessor: 'dateInsert', }, 
             { Header: ' ', accessor: 'employees', 
               Cell: ({ row }) => (
                 <button 
-                  title={`Employees assigned to task n. ${row.original.id}: ${row.original.title}`} 
+                  title={`Unassign employee from task n. ${row.original.id}: ${row.original.title}`} 
                   style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0, margin: 0 }}
                   onClick={() => this.handleUnassignTaskClick(row.original)}
                   type="button" >
-                  <img src={detailIcon} 
-                    alt={`Employees assigned to task n. ${row.original.id} per ${row.original.title}`} 
-                    data-tip="See related employees" 
+                  <img src={removeIcon} 
+                    alt={`Unassign employes from task n. ${row.original.id} per ${row.original.title}`} 
+                    data-tip="See related employees to unasign.. " 
                     data-for={`tooltip-${row.original.id}`}
                   />
                 </button>
               ),
             },
+            { Header: ' ', accessor: 'addEmployee', 
+                Cell: ({ row }) => (
+                <button 
+                    title={`Assign employees to task n. ${row.original.id}: ${row.original.title}`} 
+                    style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0, margin: 0 }}
+                    onClick={() => this.handleAssignTaskClick(row.original)}
+                    type="button" >
+                    <img src={addIcon} 
+                    alt={`Assign employees to task n. ${row.original.id}: ${row.original.title}`} 
+                    data-tip="Assign employees.." 
+                    data-for={`tooltip-${row.original.id}`}
+                    />
+                </button>
+                ),
+            },
         ];    
+
+        // GUI definition
 
         return ( 
             <div className="container">
@@ -285,7 +378,7 @@ class TaskPage extends Component {
                                 </div>
                                 <div className="row">
                                     <div className="col-2">
-                                        <InputText
+                                        <input
                                             id="searchFilter"
                                             name="searchFilter"
                                             disabled={true} 
@@ -294,13 +387,15 @@ class TaskPage extends Component {
                                         />
                                     </div>
                                     <div className="col-2">
-                                        
                                     </div>
                                     <div className="col-2">
+                                        <label>Create new task</label>
+                                    </div>
+                                    <div className="col-1">
                                     <button 
                                         title={`create new task`} 
                                         style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0, margin: 0 }}
-                                        onClick={() => this.callCreateTask()}
+                                        onClick={() => this.handleCreateTaskClick()}
                                         type="button" >
                                         <img src={addIcon} 
                                             alt={`create new task`} 
@@ -308,11 +403,30 @@ class TaskPage extends Component {
                                         />
                                         </button>
                                     </div>
-                                    <div className="col-6">
+                                    <div className="col-1">
+                                        
+                                    </div>
+                                    <div className="col-2">
+                                        <label>Delete task</label>
+                                    </div>
+                                    <div className="col-1">
+                                    <button 
+                                        title={`delete task`} 
+                                        style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0, margin: 0 }}
+                                        onClick={() => this.handleDeleteTaskClick()}
+                                        type="button" >
+                                        <img src={removeIcon} 
+                                            alt={`delete task`} 
+                                            data-tip="Delete task" 
+                                        />
+                                        </button>
+                                    </div>
+                                    <div className="col-1">
                                         
                                     </div>
                                 </div>
                         </fieldset>
+                        { /* if retrieve any data then show it in a result grid  */ }
                         {(this.state.taskData.length > 0) && (
                             <>
                                 <fieldset>
@@ -326,6 +440,7 @@ class TaskPage extends Component {
                         )}
                     </div>
                 </form>
+                { /* if Modal is turned on display it */ }
                 {this.state.modalDisplayed && ( 
                     <Modal
                         modalDisplayed={this.state.modalDisplayed}

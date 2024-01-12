@@ -1,8 +1,9 @@
 import React from 'react';
-import Button from '../components/atoms/clickable/Button';
 import StringList from '../components/atoms/list/StringList';
+import Button from '../components/atoms/clickable/Button';
 import iconaLoading from '../images/loading.gif';
-import {getFormattedStringFromDate} from './Utils';
+
+// modal component based on bootstrap 
 
 const Modal = ({ modalDisplayed, onClose, onConfirm,  title, message, modalConfirmEnable, modalDetail, modalDetailLimit, modalContent, modalIsLoading, modalDownloadFilename}) => {
   return (

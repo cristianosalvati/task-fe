@@ -1,5 +1,7 @@
 import { useTable, useSortBy } from 'react-table';
 
+// a grid showing data result 
+
 function ResultsPage({ title, columns, data }) {
   const defaultSortBy = [
     {
@@ -42,8 +44,8 @@ function ResultsPage({ title, columns, data }) {
                       <span>
                         {column.isSorted
                           ? column.isSortedDesc
-                            ? ' ▼' // Indica l'ordinamento discendente
-                            : ' ▲' // Indica l'ordinamento ascendente
+                            ? ' ▼' // descending sort
+                            : ' ▲' // asc sort
                           : ' '}
                       </span>
                     </th>

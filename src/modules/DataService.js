@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { API_URLS } from './ApiConfig';
-import {getFormattedStringFromDate, getDateFromFormattedString, getFirstDayOfMonth, getLastDayOfMonth} from './Utils';
+
+// FE client implementation for BE API 
 
 export async function getAllEmployees (){
   try {
@@ -48,6 +49,65 @@ export async function findTasks (searchFilter){
       return employeeTasks;
     })
     );
+
+  } catch (error) {
+    console.error('Error:', error);
+    throw error;
+  }
+};
+
+
+export async function assignEmployeeToTask (employeeId, taskId, isAssign){
+  try {
+    console.log(`DataService -> assignEmployeeToTask -> employeeId = ${employeeId},taskId = ${taskId}`); 
+    
+    const url = (isAssign ? API_URLS.assignEmployeeToTask(employeeId, taskId) : API_URLS.unassignEmployeeToTask(employeeId, taskId));
+    const method = 'POST';
+    const requestBody =  null;
+
+    const response = await axios({
+      method: method,
+      url: url,
+      data: requestBody,
+    });
+      
+    if (response.data.status === 'SUCCESS') {
+      // Return response in case of success
+      return response.data.items[0];
+    } else {
+      throw new Error(response.data.items[0].description); 
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    throw error;
+  }
+};
+
+export async function updateTaskDueDate (taskId, dueDate){
+  try {
+    console.log(`DataService -> updateTaskDueDate -> taskId = ${taskId}`); 
+    const FormData = require('form-data');
+    let data = new FormData();
+    data.append('newDueDate', dueDate);
+    const url = API_URLS.updateTaskDueDate(taskId);
+    const method = 'POST';
+
+    const response = await axios({
+      method: method,
+      url: url,
+      headers: {
+        // some header props here
+      },
+      data: data,
+      maxBodyLength: Infinity,
+    });
+      
+    if (response.data.status === 'SUCCESS') {
+      // Return response in case of success
+      return response.data.items[0];
+    } else {
+      throw new Error(response.data.items[0].description); 
+    }
 
   } catch (error) {
     console.error('Error:', error);
@@ -149,63 +209,6 @@ export async function deleteTaskById (taskId){
     } else {
       throw new Error(response.data.items[0].description); 
     }
-  } catch (error) {
-    console.error('Error:', error);
-    throw error;
-  }
-};
-
-export async function assignEmployeeToTask (employeeId, taskId, isAssign){
-  try {
-    console.log(`DataService -> assignEmployeeToTask -> employeeId = ${employeeId},taskId = ${taskId}`); 
-    
-    const url = (isAssign ? API_URLS.assignEmployeeToTask(employeeId, taskId) : API_URLS.unassignEmployeeToTask(employeeId, taskId));
-    const method = 'POST';
-    const requestBody =  null;
-
-    const response = await axios({
-      method: method,
-      url: url,
-      data: requestBody,
-    });
-      
-    if (response.data.status === 'SUCCESS') {
-      // Return response in case of success
-      return response.data.items[0];
-    } else {
-      throw new Error(response.data.items[0].description); 
-    }
-  } catch (error) {
-    console.error('Error:', error);
-    throw error;
-  }
-};
-
-export async function updateTaskDueDate (taskId, dueDate){
-  try {
-    console.log(`DataService -> updateTaskDueDate -> taskId = ${taskId}`); 
-    
-    const url = API_URLS.updateTaskDueDate(taskId);
-    const method = 'POST';
-    const requestBody =  [
-      {
-        newDueDate: dueDate
-      }
-    ];;
-
-    const response = await axios({
-      method: method,
-      url: url,
-      data: requestBody,
-    });
-      
-    if (response.data.status === 'SUCCESS') {
-      // Return response in case of success
-      return response.data.items[0];
-    } else {
-      throw new Error(response.data.items[0].description); 
-    }
-
   } catch (error) {
     console.error('Error:', error);
     throw error;
